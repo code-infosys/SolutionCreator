@@ -21,9 +21,8 @@ namespace SolutionCreator
              
             string folderPath = txtFolderName.Text;
             string tableName = txtTableName.Text;
-            string namespaceName = txtNameSpace.Text;
-
-            if (string.IsNullOrEmpty(folderPath) || string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(namespaceName))
+            
+            if (string.IsNullOrEmpty(folderPath) || string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(txtNameSpace.Text))
             {
                 MessageBox.Show("Please fill all fields.");
                 return;
@@ -42,7 +41,7 @@ namespace SolutionCreator
 
             try
             { 
-                ProcessDirectory(templateFolderPath, outputFolder, tableName, namespaceName);
+                ProcessDirectory(templateFolderPath, outputFolder);
                 MessageBox.Show("Files generated successfully!");
             }
             catch (Exception ex)
@@ -51,40 +50,41 @@ namespace SolutionCreator
             }
         }
 
-        private void ProcessDirectory(string sourceDir, string targetDir, string tableName, string namespaceName)
+        private void ProcessDirectory(string sourceDir, string targetDir)
         { 
             Directory.CreateDirectory(targetDir);
              
             foreach (string filePath in Directory.GetFiles(sourceDir))
             {
                 if (Path.GetFileName(filePath) != "MetaData.json")
-                    ProcessFile(filePath, targetDir, tableName, namespaceName);
+                    ProcessFile(filePath, targetDir);
             }
              
             foreach (string subDir in Directory.GetDirectories(sourceDir))
             { 
-                string newTargetSubDir = Path.Combine(targetDir, Path.GetFileName(subDir).Replace("#TableName#", tableName));
-                ProcessDirectory(subDir, newTargetSubDir, tableName, namespaceName);
+                string newTargetSubDir = Path.Combine(targetDir, Path.GetFileName(subDir).Replace("#TableName#", txtTableName.Text));
+                ProcessDirectory(subDir, newTargetSubDir);
             }
         }
 
-        private void ProcessFile(string filePath, string targetDir, string tableName, string namespaceName)
+        private void ProcessFile(string filePath, string targetDir)
         {
             string fileName = Path.GetFileName(filePath);
     
-            string newFileName = fileName.Replace("#TableName#", tableName);
+            string newFileName = fileName.Replace("#TableName#", txtTableName.Text);
             string newFilePath = Path.Combine(targetDir, newFileName);
              
             var contentBuilder = new StringBuilder(File.ReadAllText(filePath));
-            contentBuilder.Replace("#TableName#", tableName);
-            contentBuilder.Replace("#NameSpace#", namespaceName);
+            contentBuilder.Replace("#TableName#", txtTableName.Text);
+            contentBuilder.Replace("#NameSpace#", txtNameSpace.Text);
             string content = contentBuilder.ToString();
             if (chkSaveDirectToProject.Checked)
             {
                 var fileInfo = fileSaveInfos.FirstOrDefault(info => info.FileName == fileName);
                 if (fileInfo != null && !string.IsNullOrEmpty(fileInfo.SavePath))
                 {
-                    newFilePath = Path.Combine(fileInfo.SavePath, newFileName); 
+                    if (Directory.Exists(fileInfo.SavePath))
+                        newFilePath = Path.Combine(fileInfo.SavePath, newFileName); 
                 }
 
                 File.WriteAllText(newFilePath, content);  
