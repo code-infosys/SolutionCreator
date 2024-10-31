@@ -14,7 +14,18 @@ namespace SolutionCreator
         {
             InitializeComponent();
         }
+
+        private void TemplateFileGenerator_Load(object sender, EventArgs e)
+        {
+           var lastlog = File.ReadAllText(Path.Combine(Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName, "lastlog.txt"));
+            if (!string.IsNullOrEmpty(lastlog))
+            {
+                txtDeleteJsonPath.Text = lastlog;
+            }
+        }
+
         private List<FileSaveInfo> fileSaveInfos = new List<FileSaveInfo>();
+        private List<FileSaveInfo> loggedFiles = new List<FileSaveInfo>();
         private void btnGenerate_Click(object sender, EventArgs e)
         { 
             string projectDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName;
@@ -42,6 +53,7 @@ namespace SolutionCreator
             try
             { 
                 ProcessDirectory(templateFolderPath, outputFolder);
+                SaveLogToJson(outputFolder, projectDirectory);
                 MessageBox.Show("Files generated successfully!");
             }
             catch (Exception ex)
@@ -84,7 +96,10 @@ namespace SolutionCreator
                 if (fileInfo != null && !string.IsNullOrEmpty(fileInfo.SavePath))
                 {
                     if (Directory.Exists(fileInfo.SavePath))
-                        newFilePath = Path.Combine(fileInfo.SavePath, newFileName); 
+                    {
+                        newFilePath = Path.Combine(fileInfo.SavePath, newFileName);
+                        loggedFiles.Add(new FileSaveInfo { SavePath = newFilePath });
+                    }
                 }
 
                 File.WriteAllText(newFilePath, content);  
@@ -95,6 +110,51 @@ namespace SolutionCreator
             }
         }
 
+        private void SaveLogToJson(string outPutFolder, string projectDirectory)
+        {
+            if (loggedFiles.Any())
+            {
+                string logFilePath = Path.Combine(outPutFolder, "log.json");
+                File.WriteAllText(logFilePath, JsonConvert.SerializeObject(loggedFiles, Formatting.Indented));
+                txtDeleteJsonPath.Text = logFilePath;
+
+                //save last path till next generate
+                File.WriteAllText(Path.Combine(projectDirectory, "lastlog.txt"), logFilePath);
+            }
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        { 
+            if (string.IsNullOrEmpty(txtDeleteJsonPath.Text))
+            {
+                MessageBox.Show("Please fill Delete path.");
+                return;
+            }
+
+            string logFilePath = txtDeleteJsonPath.Text;
+
+            if (File.Exists(logFilePath))
+            {
+                var loggedFiles = JsonConvert.DeserializeObject<List<FileSaveInfo>>(File.ReadAllText(logFilePath));
+                if (loggedFiles.Any())
+                {
+                    foreach (var fileInfo in loggedFiles)
+                    {
+                        if (File.Exists(fileInfo.SavePath))
+                        {
+                            File.Delete(fileInfo.SavePath); // Delete the file
+                        }
+                    }
+
+                    // Optionally, clear the log file after deletion
+                    File.WriteAllText(logFilePath, "[]"); // Clear the log
+                    MessageBox.Show("Deleted done.");
+                }
+                
+            }
+        }
+
+        
     }
 
     public class FileSaveInfo
