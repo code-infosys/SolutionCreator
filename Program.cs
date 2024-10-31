@@ -16,7 +16,8 @@ namespace SolutionCreator
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new SC());
+            //Application.Run(new SC());
+            Application.Run(new TemplateFileGenerator());
         }
     }
 }

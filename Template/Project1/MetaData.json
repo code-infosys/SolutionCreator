@@ -1,0 +1,14 @@
+[
+    {
+        "FileName": "#TableName#Model.cs",
+        "SavePath": "C:\\Users\\singh\\Downloads\\test\\Models"
+    },
+    {
+        "FileName": "#TableName#Repository.cs",
+        "SavePath": "C:\\Users\\singh\\Downloads\\test\\Models"
+    },
+    {
+        "FileName": "#TableName#Service.cs",
+        "SavePath": "C:\\Users\\singh\\Downloads\\test\\Models"
+    }
+]

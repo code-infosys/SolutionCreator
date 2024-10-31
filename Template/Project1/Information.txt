@@ -1,0 +1,6 @@
+
+namespace #NameSpace#.Models
+ 
+    public class #TableName# {get;set}
+ 
+ 
